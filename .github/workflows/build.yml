@@ -1,0 +1,69 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk build-essential libssl-dev libffi-dev python3-dev autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev ccache zip unzip
+          pip install --upgrade pip
+          pip install cython==0.29.33 buildozer
+
+      - name: Generate Fresh Spec & Build APK
+        run: |
+          # Rename flappybird.py to main.py if needed
+          if [ -f "flappybird.py" ]; then mv flappybird.py main.py; fi
+
+          # Generate exact buildozer.spec without relying on sed replacements
+          cat << 'EOF' > buildozer.spec
+          [app]
+          title = Flappy Bird
+          package.name = flappybird
+          package.domain = com.spooky.flappy
+          source.dir = .
+          source.include_exts = py,png,jpg,kv,atlas,wav,mp3
+          version = 0.1
+          requirements = python3,pygame-ce
+          orientation = portrait
+          osx.kivy_version = 1.9.1
+          fullscreen = 1
+          android.presplash_color = white
+          android.api = 33
+          android.minapi = 24
+          android.ndk = 25b
+          android.accept_sdk_license = True
+          android.archs = arm64-v8a
+          p4a.bootstrap = sdl2
+
+          [buildozer]
+          log_level = 2
+          warn_on_root = 1
+          EOF
+
+          # Trigger Build
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlappyBird-APK
+          path: bin/*.apk
+          
