@@ -50,7 +50,7 @@ jobs:
       - name: Install Build Tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install "cython<3.0.0"
+          pip install "cython==0.29.33"
           pip install buildozer
 
       - name: Auto-generate buildozer.spec
@@ -63,10 +63,11 @@ jobs:
           source.dir = .
           source.include_exts = py,png,jpg,jpeg,mp3,wav,json
           version = 0.1
-          requirements = python3,pygame
+          requirements = python3,pygame,cython==0.29.33
           orientation = portrait
           fullscreen = 1
           p4a.branch = master
+          p4a.bootstrap = sdl2
           android.permissions = INTERNET
           android.api = 33
           android.minapi = 21
