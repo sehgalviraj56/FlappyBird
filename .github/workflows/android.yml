@@ -53,10 +53,6 @@ jobs:
           pip install "cython<3.0.0"
           pip install buildozer
 
-      - name: Clean Old Buildzer Cache
-        run: |
-          rm -rf .buildozer
-
       - name: Auto-generate buildozer.spec
         run: |
           cat << 'EOF' > buildozer.spec
@@ -83,11 +79,10 @@ jobs:
           warn_on_root = 1
           EOF
 
-      - name: Build APK with Clean Step
+      - name: Build APK with Buildozer
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx2048m"
         run: |
-          buildozer android clean
           buildozer -v android debug
 
       - name: Upload APK Artifact
