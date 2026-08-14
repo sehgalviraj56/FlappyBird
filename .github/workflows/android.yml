@@ -30,9 +30,6 @@ jobs:
       - name: Set JAVA_HOME
         run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
 
-      # Only cache the GLOBAL SDK/NDK download — this is what actually saves time.
-      # We do NOT cache the local .buildozer project build dir anymore, since a
-      # broken venv from a previous run can get stuck there and silently reused.
       - name: Cache Buildozer global directory (Android SDK/NDK)
         uses: actions/cache@v4
         with:
@@ -66,3 +63,4 @@ jobs:
         with:
           name: game-apk
           path: bin/*.apk
+          
