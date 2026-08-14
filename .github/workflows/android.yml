@@ -7,7 +7,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v4
 
@@ -19,12 +20,49 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt install -y \
+            git zip unzip openjdk-17-jdk python3-pip \
+            autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev \
+            build-essential ccache
 
-      - name: Install Buildozer
-        run: pip install buildozer cython
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
 
-      - name: Build APK
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+
+      - name: Cache Buildozer app build directory
+        uses: actions/cache@v4
+        with:
+          path: .buildozer
+          key: buildozer-app-${{ hashFiles('buildozer.spec') }}
+
+      - name: Install Buildozer and Cython
+        run: pip install --upgrade buildozer cython==0.29.36 virtualenv
+
+      - name: Set app name and icon in buildozer.spec
+        run: |
+          # Set the app title to "Flappy Bird"
+          sed -i "s/^title = .*/title = Flappy Bird/" buildozer.spec
+
+          # Set the icon path to your logo file
+          if grep -q "^icon.filename" buildozer.spec; then
+            sed -i "s|^icon.filename = .*|icon.filename = %(source.dir)s/IMG_20260730_164421.jpg|" buildozer.spec
+          elif grep -q "^#icon.filename" buildozer.spec; then
+            sed -i "s|^#icon.filename = .*|icon.filename = %(source.dir)s/IMG_20260730_164421.jpg|" buildozer.spec
+          else
+            echo "icon.filename = %(source.dir)s/IMG_20260730_164421.jpg" >> buildozer.spec
+          fi
+
+          echo "----- buildozer.spec after edit -----"
+          grep -E "^title|^icon.filename" buildozer.spec
+
+      - name: Build APK (debug)
         run: buildozer -v android debug
 
       - name: Upload APK artifact
