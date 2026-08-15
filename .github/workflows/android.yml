@@ -33,6 +33,11 @@ jobs:
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
           echo "USE_CCACHE=1" >> $GITHUB_ENV
 
+      - name: Pin pip to a known-good version
+        run: |
+          echo "PIP_CONSTRAINT=$HOME/pip-constraints.txt" >> $GITHUB_ENV
+          echo "pip<26.2" > $HOME/pip-constraints.txt
+
       - name: Cache Ccache
         uses: actions/cache@v4
         with:
@@ -58,11 +63,6 @@ jobs:
         run: |
           sed -i "s/^title = .*/title = Flappy Bird/" buildozer.spec
           sed -i "s|^#\?icon.filename = .*|icon.filename = %(source.dir)s/IMG_20260730_164421.jpg|" buildozer.spec
-
-          # Fix: charset-normalizer 3.5.0 wheel platform mismatch on p4a build
-          if grep -q "requests" buildozer.spec && ! grep -q "charset-normalizer" buildozer.spec; then
-            sed -i "s/^\(requirements = .*\)/\1,charset-normalizer==3.3.2/" buildozer.spec
-          fi
 
       - name: Build Android APK (Debug)
         run: yes | buildozer -v android debug
