@@ -33,7 +33,6 @@ jobs:
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
           echo "USE_CCACHE=1" >> $GITHUB_ENV
 
-      # Global Ccache directory for compiled C/C++ recipes
       - name: Cache Ccache
         uses: actions/cache@v4
         with:
@@ -42,7 +41,6 @@ jobs:
           restore-keys: |
             ccache-android-${{ runner.os }}-
 
-      # Cache Android SDK/NDK to bypass downloading 1.5GB+ every time
       - name: Cache Buildozer Global Dependencies
         uses: actions/cache@v4
         with:
@@ -61,6 +59,11 @@ jobs:
           sed -i "s/^title = .*/title = Flappy Bird/" buildozer.spec
           sed -i "s|^#\?icon.filename = .*|icon.filename = %(source.dir)s/IMG_20260730_164421.jpg|" buildozer.spec
 
+          # Fix: charset-normalizer 3.5.0 wheel platform mismatch on p4a build
+          if grep -q "requests" buildozer.spec && ! grep -q "charset-normalizer" buildozer.spec; then
+            sed -i "s/^\(requirements = .*\)/\1,charset-normalizer==3.3.2/" buildozer.spec
+          fi
+
       - name: Build Android APK (Debug)
         run: yes | buildozer -v android debug
 
@@ -70,4 +73,3 @@ jobs:
           name: FlappyBird-Debug-APK
           path: bin/*.apk
           retention-days: 7
-          
