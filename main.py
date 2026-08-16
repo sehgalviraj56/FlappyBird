@@ -12,7 +12,7 @@ def show_crash(msg):
         Toast = autoclass('android.widget.Toast')
         String = autoclass('java.lang.String')
         activity = PythonActivity.mActivity
-        activity.runOnUiThread(lambda: Toast.makeText(activity, String(str(msg)[:400]), Toast.LENGTH_LONG).show())
+        activity.runOnUiThread(lambda: Toast.makeText(activity, String(str(msg)[-500:]), Toast.LENGTH_LONG).show())
     except Exception:
         pass
     try:
