@@ -1,3 +1,29 @@
+import sys
+import traceback
+
+def show_crash(msg):
+    try:
+        from jnius import autoclass
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        Toast = autoclass('android.widget.Toast')
+        String = autoclass('java.lang.String')
+        activity = PythonActivity.mActivity
+        activity.runOnUiThread(lambda: Toast.makeText(activity, String(msg[:400]), Toast.LENGTH_LONG).show())
+    except Exception:
+        pass
+    try:
+        with open("crash_log.txt", "w") as f:
+            f.write(msg)
+    except Exception:
+        pass
+
+sys.excepthook = lambda t, v, tb: show_crash("".join(traceback.format_exception(t, v, tb)))
+
+try:
+    import pygame
+except Exception:
+    show_crash(traceback.format_exc())
+    raise
 import pygame
 import sys
 import random
